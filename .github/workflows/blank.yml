@@ -1,0 +1,52 @@
+
+# .github/workflows/pc_virtual_otimizado.yml
+name: PC Virtual de Alta Performance
+
+on:
+  push:
+    branches: [ "main", "develop" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch: # Permite rodar manualmente pelo site do GitHub
+
+# Concorrência otimizada (como sugerido na sua imagem)
+# Cancela execuções antigas automaticamente se você enviar um novo código
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  execucao:
+    # Define o sistema operacional do PC Virtual (Ubuntu é o mais rápido e barato)
+    runs-on: ubuntu-latest
+    
+    # Define o tempo máximo de execução para evitar gastos desnecessários
+    timeout-minutes: 15
+
+    steps:
+      # 1. Baixa o código do seu repositório para o PC Virtual
+      - name: Clonar o repositório
+        uses: actions/checkout@v4
+
+      # 2. Configura o ambiente (Exemplo com Node.js, mude para Python, Java, etc., se precisar)
+      - name: Configurar Node.js (Ambiente)
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm' # Ativa cache para baixar dependências muito mais rápido
+
+      # 3. Instala as dependências do seu projeto
+      - name: Instalar dependências
+        run: npm ci
+
+      # 4. Executa os testes ou build do sistema
+      - name: Executar testes automatizados
+        run: npm test
+
+      # 5. Mostra o status de hardware do PC Virtual (Opcional - para monitoramento)
+      - name: Informações do PC Virtual
+        run: |
+          echo "=== CPU ==="
+          lscpu | grep "Model name"
+          echo "=== Memória RAM ==="
+          free -h
